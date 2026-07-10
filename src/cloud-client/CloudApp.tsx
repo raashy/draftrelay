@@ -115,6 +115,16 @@ function errorMessage(error: ClientError | null | undefined): string {
   return error?.message ?? "The request could not be completed. Please try again.";
 }
 
+function passkeyErrorMessage(error: ClientError | null | undefined): string {
+  if (
+    error?.code === "SESSION_NOT_FRESH" ||
+    error?.message?.toLowerCase().includes("session is not fresh")
+  ) {
+    return "For security, sign out and sign back in before changing passkeys.";
+  }
+  return errorMessage(error);
+}
+
 function productUrl(path: string): string {
   return new URL(path, window.location.origin).toString();
 }
@@ -589,7 +599,7 @@ function AccountPage() {
     setBusy("passkey"); setError(null); setMessage(null);
     try {
       const result = await authClient.passkey.addPasskey({ name: "Primary passkey" });
-      if (result.error) setError(errorMessage(result.error));
+      if (result.error) setError(passkeyErrorMessage(result.error));
       else { setMessage("Passkey added."); await passkeys.refetch(); }
     } catch (caught) { setError(caught instanceof Error ? caught.message : "Passkey setup failed."); }
     finally { setBusy(null); }
@@ -601,7 +611,7 @@ function AccountPage() {
     setBusy(`passkey:${passkey.id}`); setError(null); setMessage(null);
     try {
       const result = await authClient.passkey.deletePasskey({ id: passkey.id });
-      if (result.error) setError(errorMessage(result.error));
+      if (result.error) setError(passkeyErrorMessage(result.error));
       else { setMessage(`${label} removed.`); await passkeys.refetch(); }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "The passkey could not be removed.");

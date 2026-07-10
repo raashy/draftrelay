@@ -155,7 +155,7 @@ export function createCloudAuth(
     session: {
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
-      freshAge: 5 * 60,
+      freshAge: 60 * 60 * 24,
       cookieCache: { enabled: false }
     },
     verification: {
