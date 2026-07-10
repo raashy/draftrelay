@@ -554,6 +554,7 @@ function AccountPage() {
   const [subscriptionLoad, setSubscriptionLoad] = useState<"loading" | "loaded" | "error">("loading");
   const [connections, setConnections] = useState<OAuthConnection[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deletePassword, setDeletePassword] = useState("");
@@ -561,8 +562,10 @@ function AccountPage() {
 
   useEffect(() => { document.title = "Account — DraftRelay"; }, []);
   useEffect(() => {
-    if (!session.isPending && !session.data) window.location.replace("/login?returnTo=%2Faccount");
-  }, [session.data, session.isPending]);
+    if (!signingOut && !session.isPending && !session.data) {
+      window.location.replace("/login?returnTo=%2Faccount");
+    }
+  }, [session.data, session.isPending, signingOut]);
   useEffect(() => {
     if (!session.data) return;
     void fetch("/api/usage", { headers: { Accept: "application/json" } })
@@ -669,11 +672,18 @@ function AccountPage() {
   }
 
   async function signOut(): Promise<void> {
+    setSigningOut(true);
+    setError(null);
     window.sessionStorage.setItem(SKIP_CONDITIONAL_PASSKEY_ONCE, "1");
-    await authClient.signOut({
-      fetchOptions: { onSuccess: () => window.location.replace("/") }
-    });
-    window.location.replace("/");
+    try {
+      const result = await authClient.signOut();
+      if (result.error) throw new Error(errorMessage(result.error));
+      window.location.replace("/");
+    } catch (caught) {
+      window.sessionStorage.removeItem(SKIP_CONDITIONAL_PASSKEY_ONCE);
+      setSigningOut(false);
+      setError(caught instanceof Error ? caught.message : "Sign out failed.");
+    }
   }
 
   async function revokeConnection(connection: OAuthConnection): Promise<void> {
@@ -715,7 +725,7 @@ function AccountPage() {
   return (
     <div className="account-shell">
       <a className="skip-link" href="#main">Skip to account settings</a>
-      <header className="account-header"><Brand /><nav><a href="/app">Review inbox</a><button type="button" onClick={() => void signOut()}>Sign out</button></nav></header>
+      <header className="account-header"><Brand /><nav><a href="/app">Review inbox</a><button type="button" disabled={signingOut} onClick={() => void signOut()}>{signingOut ? "Signing out…" : "Sign out"}</button></nav></header>
       <main id="main" className="account-main" tabIndex={-1}>
         <header><div><p className="kicker">Account and connections</p><h1>{session.data.user.name}</h1></div><p>{session.data.user.email}</p></header>
         {(error || message) && <p className={error ? "auth-error" : "auth-success"} role={error ? "alert" : "status"}>{error ?? message}</p>}
