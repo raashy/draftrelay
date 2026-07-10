@@ -262,7 +262,7 @@ test("signup, MCP OAuth, passkey login, revocation, and account deletion work", 
   const email = `e2e-${Date.now()}@example.com`;
   const consoleErrors: string[] = [];
   page.on("console", (message) => { if (message.type() === "error") consoleErrors.push(message.text()); });
-  await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: "http://localhost:3941" });
+  await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: baseUrl });
 
   const cdp = await context.newCDPSession(page);
   await cdp.send("WebAuthn.enable");

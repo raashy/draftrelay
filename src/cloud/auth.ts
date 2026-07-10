@@ -44,6 +44,10 @@ export function addOfflineAccessForRefreshRegistration(body: unknown): unknown {
   return { ...registration, scope: [...scopes, "offline_access"].join(" ") };
 }
 
+export function shouldUseSecureCookies(appUrl: string): boolean {
+  return new URL(appUrl).protocol === "https:";
+}
+
 async function deleteStripeResources(
   database: Pool,
   stripeClient: Stripe,
@@ -187,7 +191,7 @@ export function createCloudAuth(
       })
     },
     advanced: {
-      useSecureCookies: config.environment === "production",
+      useSecureCookies: shouldUseSecureCookies(config.appUrl),
       cookiePrefix: "draftrelay",
       // A custom UUID generator keeps ordinary auth IDs compatible with the
       // UUID columns while allowing OAuth 1.7's forceAllowId records to retain

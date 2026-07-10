@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { addOfflineAccessForRefreshRegistration } from "./auth.js";
+import {
+  addOfflineAccessForRefreshRegistration,
+  shouldUseSecureCookies
+} from "./auth.js";
 
 describe("OAuth dynamic registration compatibility", () => {
   it("adds offline_access when an explicit-scope public client requests refresh tokens", () => {
@@ -27,5 +30,12 @@ describe("OAuth dynamic registration compatibility", () => {
       grant_types: ["authorization_code", "refresh_token"]
     };
     expect(addOfflineAccessForRefreshRegistration(registration)).toBe(registration);
+  });
+});
+
+describe("hosted auth cookies", () => {
+  it("uses secure cookies for every HTTPS deployment, including previews", () => {
+    expect(shouldUseSecureCookies("https://draftrelay.onrender.com")).toBe(true);
+    expect(shouldUseSecureCookies("http://localhost:3941")).toBe(false);
   });
 });
