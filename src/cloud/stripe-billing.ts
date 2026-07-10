@@ -120,7 +120,7 @@ export interface StripeBillingService {
 
 export function createStripeClient(config: CloudConfig): Stripe {
   return new Stripe(
-    config.stripe?.secretKey ?? "sk_test_draftrelay_not_configured",
+    config.stripe?.secretKey ?? "sk_test_x",
     { apiVersion: STRIPE_API_VERSION, maxNetworkRetries: 2, timeout: 10_000 }
   );
 }

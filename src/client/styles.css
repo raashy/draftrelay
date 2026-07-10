@@ -1972,6 +1972,10 @@
     text-align: center;
   }
 
+  .panel-loading {
+    color: var(--ink);
+  }
+
   .panel-empty {
     flex-direction: column;
     padding: 34px;

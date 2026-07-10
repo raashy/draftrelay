@@ -35,9 +35,9 @@ describe("Cutline paths", () => {
       env: { CUTLINE_HOME: "portable" },
       dataDir: "records"
     });
-    expect(paths.configDir).toBe(path.join("/work", "portable", "config"));
-    expect(paths.dataDir).toBe(path.join("/work", "records"));
-    expect(paths.stateDir).toBe(path.join("/work", "portable", "state"));
+    expect(paths.configDir).toBe(path.resolve("/work", "portable", "config"));
+    expect(paths.dataDir).toBe(path.resolve("/work", "records"));
+    expect(paths.stateDir).toBe(path.resolve("/work", "portable", "state"));
   });
 
   it("creates private directories and atomically writes private files", () => {

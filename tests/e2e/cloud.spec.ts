@@ -4,9 +4,11 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
 const password = "correct-horse-battery-staple";
-const baseUrl = "http://localhost:3941";
+const baseUrl = process.env.E2E_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:3941";
 const redirectUri = `${baseUrl}/oauth-callback`;
-const fullOAuthScope = "openid offline_access outputs:read outputs:write outputs:use";
+const outputOAuthScope = "outputs:read outputs:write outputs:use";
+const claudeOAuthScope = `offline_access ${outputOAuthScope}`;
+const fullOAuthScope = `openid offline_access ${outputOAuthScope}`;
 const publicPages = [
   "/docs",
   "/security",
@@ -36,7 +38,11 @@ interface McpToolResult<T> {
   isError?: boolean;
 }
 
-async function registerPublicClient(request: APIRequestContext, name: string): Promise<string> {
+async function registerPublicClient(
+  request: APIRequestContext,
+  name: string,
+  scope = fullOAuthScope
+): Promise<string> {
   const registration = await request.post("/api/auth/oauth2/register", {
     data: {
       client_name: name,
@@ -44,7 +50,7 @@ async function registerPublicClient(request: APIRequestContext, name: string): P
       token_endpoint_auth_method: "none",
       grant_types: ["authorization_code", "refresh_token"],
       response_types: ["code"],
-      scope: fullOAuthScope
+      scope
     }
   });
   expect(registration.status()).toBe(201);
@@ -183,13 +189,22 @@ function outputScopes(scope: string): string[] {
   return scope.split(/\s+/).filter((entry) => entry.startsWith("outputs:")).sort();
 }
 
+async function expectCopiedSetupValue(page: Page, expected: string): Promise<void> {
+  await expect(page.locator(".setup-command code")).toContainText(expected);
+  if (process.env.E2E_BASE_URL) {
+    await expect(page.locator(".setup-panel").getByRole("status")).toContainText("Copied to clipboard");
+    return;
+  }
+  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain(expected);
+}
+
 test("marketing page is crawlable, responsive, and accessible", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
   await page.goto("/");
   await expect(page).toHaveTitle("DraftRelay — Review and copy output from any AI agent");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Your agent finished");
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "http://localhost:3941/");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", `${baseUrl}/`);
   const schemas = page.locator('script[type="application/ld+json"]');
   await expect(schemas).toHaveCount(2);
   const schemaText = (await schemas.allTextContents()).join("\n");
@@ -231,7 +246,7 @@ test("public documentation pages are canonical and accessible", async ({ page })
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
-      `http://localhost:3941${path}`
+      `${baseUrl}${path}`
     );
     expect((await new AxeBuilder({ page }).analyze()).violations, path).toEqual([]);
     await page.setViewportSize({ width: 390, height: 844 });
@@ -276,7 +291,7 @@ test("signup, MCP OAuth, passkey login, revocation, and account deletion work", 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.getByRole("button", { name: "Copy command" }).click();
-  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toContain("/mcp");
+  await expectCopiedSetupValue(page, "/mcp");
   const claudeTab = page.getByRole("tab", { name: "Claude Code" });
   await claudeTab.focus();
   await claudeTab.press("End");
@@ -284,7 +299,7 @@ test("signup, MCP OAuth, passkey login, revocation, and account deletion work", 
   await expect(genericTab).toBeFocused();
   await expect(genericTab).toHaveAttribute("aria-selected", "true");
   await page.getByRole("button", { name: "Copy endpoint" }).click();
-  await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(`${baseUrl}/mcp`);
+  await expectCopiedSetupValue(page, `${baseUrl}/mcp`);
   await expect(page.locator(".setup-panel").getByRole("status")).toContainText("Copied to clipboard");
   await page.getByRole("button", { name: "Go to my inbox" }).focus();
   await page.keyboard.press("Tab");
@@ -310,8 +325,13 @@ test("signup, MCP OAuth, passkey login, revocation, and account deletion work", 
     body: "<!doctype html><title>OAuth callback received</title><main>Authorization received.</main>"
   }));
   const firstClientName = "DraftRelay E2E client";
-  const firstClientId = await registerPublicClient(request, firstClientName);
-  const firstAuthorization = await authorizePublicClient(page, firstClientId, firstClientName);
+  const firstClientId = await registerPublicClient(request, firstClientName, outputOAuthScope);
+  const firstAuthorization = await authorizePublicClient(
+    page,
+    firstClientId,
+    firstClientName,
+    claudeOAuthScope
+  );
   const token = await exchangeAuthorizationCode(request, firstClientId, firstAuthorization);
   expect(token.token_type.toLowerCase()).toBe("bearer");
   expect(token.expires_in).toBe(900);
@@ -529,7 +549,11 @@ test("signup, MCP OAuth, passkey login, revocation, and account deletion work", 
   await expectInvalidRefresh(request, firstClientId, rotatedReadOnlyRefresh);
 
   const secondClientName = "DraftRelay E2E revocation client";
-  const secondClientId = await registerPublicClient(request, secondClientName);
+  const secondClientId = await registerPublicClient(
+    request,
+    secondClientName,
+    `openid profile email offline_access ${outputOAuthScope}`
+  );
   const secondAuthorization = await authorizePublicClient(page, secondClientId, secondClientName);
   const secondToken = await exchangeAuthorizationCode(request, secondClientId, secondAuthorization);
   const secondInitialRefresh = secondToken.refresh_token;

@@ -5,6 +5,7 @@ import { passkey } from "@better-auth/passkey";
 import { stripe as stripePlugin } from "@better-auth/stripe";
 import { hash, verify } from "@node-rs/argon2";
 import { betterAuth } from "better-auth";
+import { createAuthMiddleware } from "better-auth/api";
 import { captcha, jwt } from "better-auth/plugins";
 import type { Pool } from "pg";
 import type Stripe from "stripe";
@@ -27,6 +28,21 @@ const ARGON2_OPTIONS = {
   outputLen: 32,
   algorithm: 2
 } as const;
+
+export function addOfflineAccessForRefreshRegistration(body: unknown): unknown {
+  if (!body || typeof body !== "object" || Array.isArray(body)) return body;
+  const registration = body as Record<string, unknown>;
+  if (
+    typeof registration.scope !== "string" ||
+    !Array.isArray(registration.grant_types) ||
+    !registration.grant_types.includes("refresh_token")
+  ) {
+    return body;
+  }
+  const scopes = registration.scope.split(/\s+/).filter(Boolean);
+  if (scopes.includes("offline_access")) return body;
+  return { ...registration, scope: [...scopes, "offline_access"].join(" ") };
+}
 
 async function deleteStripeResources(
   database: Pool,
@@ -159,6 +175,17 @@ export function createCloudAuth(
         "/oauth2/token": { window: 60, max: 60 }
       }
     },
+    hooks: {
+      before: createAuthMiddleware(async (context) => {
+        if (context.path !== "/oauth2/register") return;
+        // MCP clients derive DCR scopes from protected-resource metadata, then
+        // may add offline_access from authorization-server metadata. Persist
+        // that server-owned refresh scope when the client requests the grant.
+        const body = addOfflineAccessForRefreshRegistration(context.body);
+        if (body === context.body) return;
+        return { context: { ...context, body } };
+      })
+    },
     advanced: {
       useSecureCookies: config.environment === "production",
       cookiePrefix: "draftrelay",
@@ -237,6 +264,8 @@ export function createCloudAuth(
           "outputs:write",
           "outputs:use"
         ],
+        // Codex requests these OIDC scopes explicitly during registration.
+        clientRegistrationAllowedScopes: ["profile", "email"],
         accessTokenExpiresIn: 15 * 60,
         refreshTokenExpiresIn: 60 * 60 * 24 * 30,
         codeExpiresIn: 5 * 60,
