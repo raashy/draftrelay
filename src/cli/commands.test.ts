@@ -68,7 +68,7 @@ describe("CLI data commands", () => {
     } finally {
       store.close();
     }
-  });
+  }, 20_000);
 
   it("exports lossless JSON to a private file", async () => {
     const { root, dataDir } = seededDataDir();

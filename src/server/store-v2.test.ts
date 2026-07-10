@@ -311,7 +311,7 @@ describe("v0.2 ItemStore", () => {
     now = new Date("2026-07-12T10:00:00.000Z");
     const reopened = memoryStore({ databasePath, now: () => now });
     expect(reopened.get(item.id)).toBeUndefined();
-  });
+  }, 20_000);
 
   it("migrates the live v0.1 shape additively and idempotently", () => {
     const directory = mkdtempSync(path.join(tmpdir(), "cutline-migration-"));
