@@ -1,0 +1,36 @@
+name: Bug report
+description: Report a reproducible DraftRelay problem
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the actual and expected behavior without including secrets.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: DraftRelay version
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options: [macOS, Linux, Windows, WSL, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Paste redacted output from `draftrelay doctor --json`.

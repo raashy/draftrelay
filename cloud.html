@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f2efe7" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta
+      name="description"
+      content="Save finished output from Claude Code, Codex, Cursor, and other MCP clients. Review for secrets, then copy cleanly to Slack, email, GitHub, or plain text."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="__APP_NAME__" />
+    <meta property="og:title" content="DraftRelay — Review and copy output from any AI agent" />
+    <meta
+      property="og:description"
+      content="The review inbox for finished AI agent output—not another transcript archive."
+    />
+    <meta property="og:url" content="__APP_URL__/" />
+    <meta property="og:image" content="__APP_URL__/social-card.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A DraftRelay review card moving a clean agent result to Slack and email." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="DraftRelay — Review and copy output from any AI agent" />
+    <meta
+      name="twitter:description"
+      content="Save the deliverable, not the conversation. Review it, check it, and copy the right version."
+    />
+    <meta name="twitter:image" content="__APP_URL__/social-card.png" />
+    <meta name="twitter:image:alt" content="A DraftRelay review card moving a clean agent result to Slack and email." />
+    <link rel="canonical" href="__APP_URL__/" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>DraftRelay — Review and copy output from any AI agent</title>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "__APP_URL__/#website",
+            "name": "DraftRelay",
+            "url": "__APP_URL__/",
+            "description": "A review inbox for finished AI agent output from MCP clients.",
+            "inLanguage": "en"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "__APP_URL__/#software",
+            "name": "DraftRelay",
+            "url": "__APP_URL__/",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Web, macOS, Linux, Windows",
+            "description": "A review inbox for finished AI agent output from MCP clients.",
+            "isAccessibleForFree": true,
+            "offers": [
+              { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
+              { "@type": "Offer", "name": "Pro monthly", "price": "1", "priceCurrency": "USD" },
+              { "@type": "Offer", "name": "Pro yearly", "price": "10", "priceCurrency": "USD" }
+            ]
+          }
+        ]
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          { "@type": "Question", "name": "Does this replace Claude Code’s /copy command?", "acceptedAnswer": { "@type": "Answer", "text": "No. Use /copy when you only need the latest response. DraftRelay is for cross-client artifacts you want to review, revise, track, scan, or format for a specific destination." } },
+          { "@type": "Question", "name": "Does DraftRelay store my full terminal transcript?", "acceptedAnswer": { "@type": "Answer", "text": "No. The MCP tool instructs the agent to save one polished deliverable. DraftRelay never reads your terminal history on its own." } },
+          { "@type": "Question", "name": "Which clients work?", "acceptedAnswer": { "@type": "Answer", "text": "Any client that supports remote Streamable HTTP MCP and OAuth can connect. Tested setup documentation is provided for Claude Code and Codex, with generic MCP instructions for others." } },
+          { "@type": "Question", "name": "What happens when a possible secret is found?", "acceptedAnswer": { "@type": "Answer", "text": "The finding is shown with a redacted preview. Depending on project policy, copying is warned or blocked until a human reviews it." } },
+          { "@type": "Question", "name": "Can I run it only on my computer?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The open-source local server uses SQLite, stays on loopback by default, and needs no hosted account. The hosted service is optional." } },
+          { "@type": "Question", "name": "Can I delete or export my data?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Individual artifacts can be permanently deleted, and the local CLI includes backup and export workflows. Hosted account export and deletion are available from account settings." } }
+        ]
+      }
+    </script>
+    <link rel="stylesheet" href="/src/cloud-client/cloud.css" />
+  </head>
+  <body class="marketing-body">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="DraftRelay home">
+        <span class="brand-mark" aria-hidden="true">D/</span>
+        <span><strong>DraftRelay</strong><small>review inbox</small></span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="#workflow">How it works</a>
+        <a href="#security">Security</a>
+        <a href="#pricing">Pricing</a>
+        <a href="/docs">Docs</a>
+      </nav>
+      <div class="site-actions">
+        <a class="text-link" href="/login">Sign in</a>
+        <a class="button button--ink" href="/signup">Start free</a>
+      </div>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="kicker"><span>01</span>A review inbox for AI agent output</p>
+          <h1 id="hero-title">Your agent finished.<br /><em>Get the part you need.</em></h1>
+          <p class="hero-lede">
+            DraftRelay gives Claude Code, Codex, Cursor, and any MCP client a clean handoff.
+            Save the useful result—not the whole transcript—review where it came from, then copy
+            the right version for Slack, email, GitHub, or anywhere else.
+          </p>
+          <div class="hero-actions">
+            <a class="button button--signal" href="/signup">Start free</a>
+            <a class="button button--line" href="#workflow">See the 60-second setup</a>
+          </div>
+          <p class="trust-line">No card required <span aria-hidden="true">·</span> Passkeys supported <span aria-hidden="true">·</span> Nothing sends itself</p>
+        </div>
+
+        <div class="handoff-specimen" aria-label="Example agent output handoff">
+          <div class="specimen-terminal">
+            <div class="specimen-bar"><span></span><span></span><span></span><b>terminal · 247 lines</b></div>
+            <pre aria-label="Jumbled terminal output"><code><span>✓</span> Ran tests in 8.42s
+<span>›</span> edited src/billing/webhook.ts
+<span>›</span> read 14 files
+<span>✓</span> 92 tests passed
+<span>›</span> Here is the client update you asked for…</code></pre>
+            <div class="terminal-fade" aria-hidden="true"></div>
+          </div>
+          <div class="relay-arrow" aria-hidden="true"><span>save_output</span><b>→</b></div>
+          <article class="output-sheet">
+            <header><span>Slack update</span><time datetime="2026-07-10">just now</time></header>
+            <p class="sheet-project">ACME / BILLING</p>
+            <h2>Checkout fix is ready for review</h2>
+            <p>We fixed duplicate subscriptions during retry, added idempotency coverage, and verified all 92 billing tests.</p>
+            <ul>
+              <li><b>Risk:</b> low; webhook behavior is unchanged</li>
+              <li><b>Next:</b> deploy to staging and run one test checkout</li>
+            </ul>
+            <footer><span>source attached</span><span>no secrets found</span><button type="button" data-demo-copy="Checkout fix is ready for review">Copy for Slack</button></footer>
+          </article>
+        </div>
+      </section>
+
+      <section class="principle-band" aria-label="Product principle">
+        <p>Your agent writes.</p><strong>You decide what leaves.</strong>
+        <span>One useful result. None of the terminal noise.</span>
+      </section>
+
+      <section class="workflow-section" id="workflow" aria-labelledby="workflow-title">
+        <header class="section-heading">
+          <p class="kicker"><span>02</span>One minute to useful</p>
+          <h2 id="workflow-title">A handoff, not another workspace.</h2>
+          <p>No blank pages to organize. Give your agent one tool, then review only the work meant for a human.</p>
+        </header>
+        <ol class="workflow-ledger">
+          <li><span>01</span><div><h3>Create an account</h3><p>Use email and password, then add a passkey for faster sign-in.</p></div></li>
+          <li><span>02</span><div><h3>Copy one MCP command</h3><p>Claude Code and Codex open the browser once to authorize a revocable connection.</p></div></li>
+          <li><span>03</span><div><h3>Ask for the finished result</h3><p>“Save this as a Slack update.” DraftRelay stores that artifact, not your terminal session.</p></div></li>
+          <li><span>04</span><div><h3>Review, then copy</h3><p>Check provenance and secret warnings. Choose the destination version you actually need.</p></div></li>
+        </ol>
+        <div class="command-desk">
+          <div><span class="kicker">Claude Code</span><code tabindex="0" aria-label="Claude Code setup command">claude mcp add --transport http --scope user draftrelay __APP_URL__/mcp</code></div>
+          <button type="button" data-copy-command="claude mcp add --transport http --scope user draftrelay __APP_URL__/mcp">Copy command</button>
+          <p>After setup, your client handles OAuth in the browser. No API token pasted into shell history.</p>
+        </div>
+      </section>
+
+      <section class="destinations-section" aria-labelledby="destinations-title">
+        <div class="section-heading section-heading--compact">
+          <p class="kicker"><span>03</span>The destination workbench</p>
+          <h2 id="destinations-title">One source. The right copy for every destination.</h2>
+        </div>
+        <div class="destination-grid">
+          <div class="destination-tabs" role="tablist" aria-label="Destination examples">
+            <button id="destination-tab-slack" type="button" role="tab" aria-controls="destination-panel" aria-selected="true" tabindex="0" data-destination="slack">Slack update<span>brief, scannable, channel-ready</span></button>
+            <button id="destination-tab-email" type="button" role="tab" aria-controls="destination-panel" aria-selected="false" tabindex="-1" data-destination="email">Client email<span>complete sentences and subject line</span></button>
+            <button id="destination-tab-github" type="button" role="tab" aria-controls="destination-panel" aria-selected="false" tabindex="-1" data-destination="github">GitHub PR<span>summary, testing, and risk</span></button>
+            <button id="destination-tab-plain" type="button" role="tab" aria-controls="destination-panel" aria-selected="false" tabindex="-1" data-destination="plain">Plain text<span>formatting-free fallback</span></button>
+          </div>
+          <div id="destination-panel" class="destination-preview" role="tabpanel" aria-labelledby="destination-tab-slack" aria-live="polite" data-destination-panel>
+            <p class="preview-label">PREVIEW / <span data-preview-label>SLACK</span></p>
+            <div data-preview-content>
+              <h3>Checkout retry fix is ready</h3>
+              <p>Duplicate subscriptions are now blocked by an idempotency key.</p>
+              <p><b>Verified:</b> 92 billing tests passed<br /><b>Next:</b> one staging checkout</p>
+            </div>
+            <button type="button" data-demo-copy="Checkout retry fix is ready">Copy this version</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="use-cases" aria-labelledby="use-cases-title">
+        <header class="section-heading section-heading--compact">
+          <p class="kicker"><span>04</span>Built around real handoffs</p>
+          <h2 id="use-cases-title">Not another chat history.</h2>
+        </header>
+        <ul>
+          <li><span>01</span><strong>Client reply</strong><p>A polished response with the right tone, ready to paste into email.</p></li>
+          <li><span>02</span><strong>Slack update</strong><p>What changed, what is blocked, and what happens next.</p></li>
+          <li><span>03</span><strong>PR description</strong><p>A stable summary that does not vanish when terminal scrollback does.</p></li>
+          <li><span>04</span><strong>Incident brief</strong><p>Impact, timeline, mitigation, and follow-up without tool chatter.</p></li>
+          <li><span>05</span><strong>Decision record</strong><p>The choice, reasoning, and tradeoffs—not the entire debate.</p></li>
+          <li><span>06</span><strong>Command set</strong><p>Only the commands you need, preserved in a copy-safe block.</p></li>
+        </ul>
+      </section>
+
+      <section class="comparison-section" aria-labelledby="comparison-title">
+        <header class="section-heading section-heading--compact">
+          <p class="kicker"><span>05</span>A deliberately smaller tool</p>
+          <h2 id="comparison-title">DraftRelay is a delivery gate.</h2>
+        </header>
+        <div class="comparison-table" role="table" aria-label="Product comparison">
+          <div role="row"><span role="columnheader">It is</span><span role="columnheader">It is not</span></div>
+          <div role="row"><span role="cell">A queue of finished, human-useful artifacts</span><span role="cell">A transcript archive</span></div>
+          <div role="row"><span role="cell">A review step before anything leaves</span><span role="cell">An agent that sends messages for you</span></div>
+          <div role="row"><span role="cell">Destination-aware copy with receipts</span><span role="cell">A passive clipboard history</span></div>
+          <div role="row"><span role="cell">A focused MCP tool that works across clients</span><span role="cell">A notes app or team wiki</span></div>
+        </div>
+      </section>
+
+      <section class="security-section" id="security" aria-labelledby="security-title">
+        <div>
+          <p class="kicker"><span>06</span>Review is the security model</p>
+          <h2 id="security-title">Nothing sends itself.</h2>
+          <p>DraftRelay accepts a finished artifact, scans it for common credential patterns, and waits. You choose whether it is safe and where it goes.</p>
+          <a class="text-arrow" href="/security">Read the security model <span aria-hidden="true">→</span></a>
+        </div>
+        <ol class="security-flow" aria-label="Data flow">
+          <li><span>1</span><div><strong>Scoped OAuth grant</strong><small>Your MCP client gets only the access you approve. Revoke it any time.</small></div></li>
+          <li><span>2</span><div><strong>Tenant-isolated storage</strong><small>Every project, item, revision, and event is bound to your workspace.</small></div></li>
+          <li><span>3</span><div><strong>Secret and provenance check</strong><small>Warnings and source context stay attached to the exact revision.</small></div></li>
+          <li><span>4</span><div><strong>Human copy action</strong><small>DraftRelay prepares destination formats; only you place them elsewhere.</small></div></li>
+        </ol>
+      </section>
+
+      <section class="pricing-section" id="pricing" aria-labelledby="pricing-title">
+        <header class="section-heading section-heading--compact">
+          <p class="kicker"><span>07</span>Small utility, small bill</p>
+          <h2 id="pricing-title">Try the real product for free.</h2>
+          <p>The paid plan covers heavier daily use without turning a clipboard problem into another large subscription.</p>
+        </header>
+        <div class="price-ledger">
+          <article>
+            <header><h3>Free</h3><p><strong>$0</strong><span>forever</span></p></header>
+            <ul><li>500 saves each month</li><li>50 saves each day</li><li>2,000 stored artifacts</li><li>3 connected MCP clients</li><li>Passkeys and password login</li></ul>
+            <a class="button button--line" href="/signup">Start free</a>
+          </article>
+          <article>
+            <header><h3>Pro</h3><p><strong>$1</strong><span>per month</span></p><small>or $10 paid yearly</small></header>
+            <ul><li>10,000 saves each month</li><li>1,000 saves each day</li><li>50,000 stored artifacts</li><li>20 connected MCP clients</li><li>250 MB of artifact storage</li></ul>
+            <a class="button button--signal" href="/signup?plan=pro">Start with Pro</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="faq-section" aria-labelledby="faq-title">
+        <header><p class="kicker"><span>08</span>Questions, answered plainly</p><h2 id="faq-title">Before you connect an agent.</h2></header>
+        <div>
+          <details><summary>Does this replace Claude Code’s /copy command?</summary><p>No. Use <code>/copy</code> when you only need the latest response. DraftRelay is for cross-client artifacts you want to review, revise, track, scan, or format for a specific destination.</p></details>
+          <details><summary>Does DraftRelay store my full terminal transcript?</summary><p>No. The MCP tool instructs the agent to save one polished deliverable. DraftRelay never reads your terminal history on its own.</p></details>
+          <details><summary>Which clients work?</summary><p>Any client that supports remote Streamable HTTP MCP and OAuth can connect. Tested setup documentation is provided for Claude Code and Codex, with generic MCP instructions for others.</p></details>
+          <details><summary>What happens when a possible secret is found?</summary><p>The finding is shown with a redacted preview. Depending on project policy, copying is warned or blocked until a human reviews it.</p></details>
+          <details><summary>Can I run it only on my computer?</summary><p>Yes. The open-source local server uses SQLite, stays on loopback by default, and needs no hosted account. The hosted service is optional.</p></details>
+          <details><summary>Can I delete or export my data?</summary><p>Yes. Individual artifacts can be permanently deleted, and the local CLI includes backup and export workflows. Hosted account export and deletion are available from account settings.</p></details>
+        </div>
+      </section>
+
+      <section class="closing-section">
+        <p class="kicker">The useful part is ready.</p>
+        <h2>Stop hunting through scrollback.</h2>
+        <p>Give your agents a clean place to hand work back to you.</p>
+        <a class="button button--signal" href="/signup">Create your free inbox</a>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a class="brand brand--footer" href="/"><span class="brand-mark" aria-hidden="true">D/</span><span><strong>DraftRelay</strong><small>the review inbox</small></span></a>
+      <p>Save the deliverable, not the conversation.</p>
+      <nav aria-label="Footer navigation"><a href="/docs">Docs</a><a href="/open-source">Open source</a><a href="/security">Security</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></nav>
+      <small>© <span data-year>2026</span> DraftRelay. Open-source local server under MIT.</small>
+    </footer>
+    <div class="copy-toast" role="status" aria-live="polite" hidden>Copied</div>
+    <script type="module" src="/src/cloud-client/marketing.ts"></script>
+  </body>
+</html>

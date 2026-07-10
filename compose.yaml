@@ -1,0 +1,59 @@
+name: draftrelay
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: draftrelay
+      POSTGRES_USER: draftrelay
+      POSTGRES_PASSWORD: draftrelay
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - draftrelay-postgres:/var/lib/postgresql/data
+      - ./docker/postgres/init-runtime-role.sql:/docker-entrypoint-initdb.d/10-runtime-role.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U draftrelay -d draftrelay"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - draftrelay-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  cloud:
+    profiles: ["app"]
+    build: .
+    environment:
+      NODE_ENV: development
+      HOST: 0.0.0.0
+      PORT: 3941
+      APP_NAME: DraftRelay
+      APP_URL: http://localhost:3941
+      DATABASE_URL: postgres://draftrelay_app:draftrelay_app@postgres:5432/draftrelay
+      REDIS_URL: redis://redis:6379
+      BETTER_AUTH_SECRET: development-only-change-before-any-shared-deploy
+    ports:
+      - "127.0.0.1:3941:3941"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  draftrelay-postgres:
+  draftrelay-redis:

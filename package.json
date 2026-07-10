@@ -1,0 +1,130 @@
+{
+  "name": "draftrelay",
+  "version": "0.3.0",
+  "private": false,
+  "type": "module",
+  "description": "The review inbox for finished AI agent output, available locally or as a hosted MCP service.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raashy/draftrelay.git"
+  },
+  "homepage": "https://github.com/raashy/draftrelay#readme",
+  "bugs": {
+    "url": "https://github.com/raashy/draftrelay/issues"
+  },
+  "bin": {
+    "draftrelay": "dist/cli/index.js",
+    "cutline": "dist/cli/index.js"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "migrations",
+    ".cutline.example.yml",
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
+    "LICENSE",
+    "SECURITY.md"
+  ],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "claude-code",
+    "codex",
+    "local-first",
+    "ai-agents",
+    "clipboard",
+    "developer-tools"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "concurrently --kill-others --names server,web --prefix-colors yellow,cyan \"pnpm dev:server\" \"pnpm dev:web\"",
+    "dev:cloud": "pnpm build:web && cross-env NODE_ENV=development tsx watch src/cloud/index.ts",
+    "dev:server": "cross-env NODE_ENV=development PUBLIC_BASE_URL=http://127.0.0.1:5173 tsx watch src/server/index.ts",
+    "dev:web": "vite --host 127.0.0.1",
+    "build": "pnpm build:web && pnpm build:server && pnpm build:cloud && pnpm build:cli",
+    "build:web": "cross-env NODE_ENV=production vite build",
+    "build:server": "tsup src/server/index.ts --format esm --platform node --target node22 --out-dir dist/server --sourcemap --clean --external better-sqlite3",
+    "build:cloud": "tsup src/cloud/index.ts src/cloud/migrate.ts src/cloud/grant-runtime-role.ts src/cloud/replay-stripe-webhook.ts --format esm --platform node --target node22 --out-dir dist/cloud --sourcemap --clean --external pg-native",
+    "build:cli": "tsup src/cli/index.ts --format esm --platform node --target node22 --out-dir dist/cli --sourcemap --clean --external better-sqlite3",
+    "start": "node dist/cli/index.js serve",
+    "start:cloud": "node dist/cloud/index.js",
+    "db:migrate": "node dist/cloud/migrate.js",
+    "db:migrate:source": "tsx src/cloud/migrate.ts",
+    "db:grant-runtime": "node dist/cloud/grant-runtime-role.js",
+    "db:grant-runtime:source": "tsx src/cloud/grant-runtime-role.ts",
+    "billing:webhook:replay": "node dist/cloud/replay-stripe-webhook.js",
+    "billing:webhook:replay:source": "tsx src/cloud/replay-stripe-webhook.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:watch": "vitest",
+    "smoke": "tsx scripts/smoke.ts",
+    "check": "pnpm typecheck && pnpm test && pnpm build",
+    "prepack": "pnpm check"
+  },
+  "dependencies": {
+    "@better-auth/oauth-provider": "1.7.0-rc.1",
+    "@better-auth/passkey": "1.7.0-rc.1",
+    "@better-auth/stripe": "1.7.0-rc.1",
+    "@modelcontextprotocol/ext-apps": "^1.7.4",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@node-rs/argon2": "2.0.2",
+    "better-auth": "1.7.0-rc.1",
+    "better-sqlite3": "^12.11.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "8.5.2",
+    "helmet": "8.2.0",
+    "ioredis": "5.11.1",
+    "pg": "8.22.0",
+    "pino": "10.3.1",
+    "pino-http": "11.0.0",
+    "rate-limit-redis": "5.0.0",
+    "resend": "6.17.2",
+    "stripe": "22.3.1",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.11.0",
+    "@playwright/test": "1.61.1",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.17.2",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.3",
+    "concurrently": "^10.0.3",
+    "cross-env": "^10.1.0",
+    "lucide-react": "^1.24.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "tsup": "^8.5.0",
+    "tsx": "^4.23.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
+  },
+  "pnpm": {
+    "overrides": {
+      "esbuild": "0.28.1"
+    },
+    "onlyBuiltDependencies": [
+      "better-sqlite3",
+      "esbuild"
+    ]
+  },
+  "packageManager": "pnpm@10.33.2"
+}

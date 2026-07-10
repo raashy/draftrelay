@@ -1,0 +1,17 @@
+# Copy this file to .cutline.yml in a repository and choose a project name.
+version: 1
+project: Example project
+policy:
+  defaultRecipeId: generic_note
+  defaultDestination: markdown
+  allowedDestinations:
+    - plain
+    - markdown
+    - slack
+    - email
+    - github
+  secretMode: block_high
+  requireSecretAck: true
+  requireReviewBeforeCopy: false
+  copyBehavior: mark_copied
+  retentionDays: null
