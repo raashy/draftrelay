@@ -38,6 +38,7 @@ declare global {
 }
 
 let turnstileLoader: Promise<TurnstileApi> | undefined;
+const SKIP_CONDITIONAL_PASSKEY_ONCE = "draftrelay.auth.skip-conditional-passkey-once";
 
 function loadTurnstile(): Promise<TurnstileApi> {
   if (window.turnstile) return Promise.resolve(window.turnstile);
@@ -252,6 +253,10 @@ function AuthPage({ mode }: { mode: "login" | "signup" }) {
 
   useEffect(() => {
     if (isSignup || !("PublicKeyCredential" in window)) return;
+    if (window.sessionStorage.getItem(SKIP_CONDITIONAL_PASSKEY_ONCE) === "1") {
+      window.sessionStorage.removeItem(SKIP_CONDITIONAL_PASSKEY_ONCE);
+      return;
+    }
     const credential = PublicKeyCredential as typeof PublicKeyCredential & {
       isConditionalMediationAvailable?: () => Promise<boolean>;
     };
@@ -654,8 +659,11 @@ function AccountPage() {
   }
 
   async function signOut(): Promise<void> {
-    await authClient.signOut();
-    window.location.assign("/");
+    window.sessionStorage.setItem(SKIP_CONDITIONAL_PASSKEY_ONCE, "1");
+    await authClient.signOut({
+      fetchOptions: { onSuccess: () => window.location.replace("/") }
+    });
+    window.location.replace("/");
   }
 
   async function revokeConnection(connection: OAuthConnection): Promise<void> {
